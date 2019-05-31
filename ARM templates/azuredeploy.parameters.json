@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "WebsiteName": {
+        "value": null
+      },
+      "MHC_ServerName": {
+        "value": null
+      },
+      "MHC_DBLogin": {
+        "value": "AdminUser"
+      },
+      "MHC_DBPassword": {
+        "value": "P2ssw0rd"
+      },
+      "MHC_DBPasswordForTest": {
+        "value": "P2ssw0rd"
+      },
+      "MHC_DBName": {
+        "value": "MyHealthClinicDB"
+      },
+      "MHC_DBCollation": {
+        "value": "SQL_Latin1_General_CP1_CI_AS"
+      },
+      "MHC_DBEdition": {
+        "value": "Basic"
+      },
+      "MHC_HostingPlanName": {
+        "value": null
+      },
+      "MHC_HostingPlanSKU": {
+        "value": "Standard"
+      },
+      "MHC_HostingPlanWorkerSize": {
+        "value": "0"
+      },
+      "EnableRules": {
+        "value": false
+      }
+    }
+  }

@@ -1,0 +1,587 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "WebsiteName": {
+            "type": "string"
+        },
+        "MHC_ServerName": {
+            "type": "string"
+        },
+        "MHC_DBLogin": {
+            "type": "string",
+            "defaultValue": "AdminUser"
+        },
+        "MHC_DBPassword": {
+            "type": "securestring",
+            "defaultValue": "P2ssw0rd"
+        },
+        "MHC_DBPasswordForTest": {
+            "type": "securestring"
+        },
+        "MHC_DBName": {
+            "type": "string",
+            "defaultValue": "MyHealthClinicDB"
+        },
+        "MHC_DBCollation": {
+            "type": "string",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "MHC_DBEdition": {
+            "type": "string",
+            "defaultValue": "Basic"           
+        },
+        "MHC_HostingPlanName": {
+            "type": "string"
+        },
+        "MHC_HostingPlanSKU": {
+            "type": "string",
+           
+            "defaultValue": "Standard"
+        },
+        "MHC_HostingPlanWorkerSize": {
+            "type": "string",
+           
+            "defaultValue": "0"
+        },
+        "EnableRules": {
+            "type": "bool",
+            "defaultValue": false
+        }      
+    },
+    "variables": {
+        "MHCServerName": "[toLower(parameters('MHC_ServerName'))]",
+        "MHCServerNameDev": "[concat(variables('MHCServerName'), 'dev')]",
+        "MHCServerNameStage": "[concat(variables('MHCServerName'), 'stage')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('MHCServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-04-01-preview",
+            "tags": {
+                "displayName": "PartsUnlimitedServer"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('MHC_DBLogin')]",
+                "administratorLoginPassword": "[parameters('MHC_DBPassword')]"
+            },
+            "resources": [
+                {
+                    "name": "[concat('AllowAllIps', variables('MHCServerName'))]",
+                    "type": "firewallrules",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('MHCServerName'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "name": "[parameters('MHC_DBName')]",
+                    "type": "databases",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('MHCServerName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "PartsUnlimitedDB"
+                    },
+                    "properties": {
+                        "collation": "[parameters('MHC_DBCollation')]",
+                        "edition": "[parameters('MHC_DBEdition')]",
+                        "maxSizeBytes": "1073741824"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[variables('MHCServerNameDev')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-04-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "PartsUnlimitedServer"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('MHC_DBLogin')]",
+                "administratorLoginPassword": "[parameters('MHC_DBPasswordForTest')]"
+            },
+            "resources": [
+                {
+                    "name": "[concat('AllowAllIps', variables('MHCServerNameDev'))]",
+                    "type": "firewallrules",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('MHCServerNameDev'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "name": "[parameters('MHC_DBName')]",
+                    "type": "databases",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('MHCServerNameDev'))]"
+                    ],
+                    "tags": {
+                        "displayName": "PartsUnlimitedDB"
+                    },
+                    "properties": {
+                        "collation": "[parameters('MHC_DBCollation')]",
+                        "edition": "[parameters('MHC_DBEdition')]",
+                        "maxSizeBytes": "1073741824"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[variables('MHCServerNameStage')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-04-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "PartsUnlimitedServer"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('MHC_DBLogin')]",
+                "administratorLoginPassword": "[parameters('MHC_DBPasswordForTest')]"
+            },
+            "resources": [
+                {
+                    "name": "[concat('AllowAllIps', variables('MHCServerNameStage'))]",
+                    "type": "firewallrules",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('MHCServerNameStage'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "name": "[parameters('MHC_DBName')]",
+                    "type": "databases",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('MHCServerNameStage'))]"
+                    ],
+                    "tags": {
+                        "displayName": "PartsUnlimitedDB"
+                    },
+                    "properties": {
+                        "collation": "[parameters('MHC_DBCollation')]",
+                        "edition": "[parameters('MHC_DBEdition')]",
+                        "maxSizeBytes": "1073741824"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[concat(parameters('WebsiteName'), '-Insights')]",
+            "type": "Microsoft.Insights/components",
+            "location": "eastus",
+            "apiVersion": "2014-04-01",
+            "tags": {
+                "displayName": "insightsComponents"
+            },
+            "properties": {
+                "ApplicationId": "[concat(parameters('WebsiteName'), '-Insights')]"
+            }
+        },
+        {
+            "name": "[concat(parameters('WebsiteName'), '-DevInsights')]",
+            "type": "Microsoft.Insights/components",
+            "location": "eastus",
+            "apiVersion": "2014-04-01",
+            "tags": {
+                "displayName": "insightsComponents"
+            },
+            "properties": {
+                "ApplicationId": "[concat(parameters('WebsiteName'), '-DevInsights')]"
+            }
+        },
+        {
+            "name": "[concat(parameters('WebsiteName'), '-StagingInsights')]",
+            "type": "Microsoft.Insights/components",
+            "location": "eastus",
+            "apiVersion": "2014-04-01",
+            "tags": {
+                "displayName": "insightsComponents"
+            },
+            "properties": {
+                "ApplicationId": "[concat(parameters('WebsiteName'), '-StagingInsights')]"
+            }
+        },
+        {
+            "name": "[parameters('MHC_HostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-06-01",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "PartsUnlimitedHostingPlan"
+            },
+            "properties": {
+                "name": "[parameters('MHC_HostingPlanName')]",
+                "sku": "[parameters('MHC_HostingPlanSKU')]",
+                "workerSize": "[parameters('MHC_HostingPlanWorkerSize')]",
+                "numberOfWorkers": 1
+            }
+        },
+        {
+            "name": "[concat(parameters('MHC_HostingPlanName'), '-', resourceGroup().name)]",
+            "type": "Microsoft.Insights/autoscalesettings",
+            "location": "East US",
+            "apiVersion": "2014-04-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('MHC_HostingPlanName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]": "Resource",
+                "displayName": "WebsiteHostingPlanAutoScale"
+            },
+            "properties": {
+                "name": "[concat(parameters('MHC_HostingPlanName'), '-', resourceGroup().name)]",
+                "profiles": [
+                    {
+                        "name": "Default",
+                        "capacity": {
+                            "minimum": "1",
+                            "maximum": "4",
+                            "default": "1"
+                        },
+                        "rules": [
+                            {
+                                "metricTrigger": {
+                                    "metricName": "CpuPercentage",
+                                    "metricResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]",
+                                    "timeGrain": "PT1M",
+                                    "statistic": "Average",
+                                    "timeWindow": "PT10M",
+                                    "timeAggregation": "Average",
+                                    "operator": "GreaterThan",
+                                    "threshold": 80
+                                },
+                                "scaleAction": {
+                                    "direction": "Increase",
+                                    "type": "ChangeCount",
+                                    "value": "1",
+                                    "cooldown": "PT10M"
+                                }
+                            },
+                            {
+                                "metricTrigger": {
+                                    "metricName": "CpuPercentage",
+                                    "metricResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]",
+                                    "timeGrain": "PT1M",
+                                    "statistic": "Average",
+                                    "timeWindow": "PT1H",
+                                    "timeAggregation": "Average",
+                                    "operator": "LessThan",
+                                    "threshold": 60
+                                },
+                                "scaleAction": {
+                                    "direction": "Decrease",
+                                    "type": "ChangeCount",
+                                    "value": "1",
+                                    "cooldown": "PT1H"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "enabled": "[parameters('EnableRules')]",
+                "targetResourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]"
+            }
+        },
+        {
+            "name": "[concat('CPUHigh ', parameters('MHC_HostingPlanName'))]",
+            "type": "Microsoft.Insights/alertrules",
+            "location": "East US",
+            "apiVersion": "2014-04-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('MHC_HostingPlanName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]": "Resource",
+                "displayName": "WebsiteHostingPlanAlertRuleCPUHigh"
+            },
+            "properties": {
+                "name": "[concat('CPUHigh ', parameters('MHC_HostingPlanName'))]",
+                "description": "[concat('The average CPU is high across all the instances of ', parameters('MHC_HostingPlanName'))]",
+                "isEnabled": "[parameters('EnableRules')]",
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]",
+                        "metricName": "CpuPercentage"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 90,
+                    "windowSize": "PT15M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "name": "[concat('LongHttpQueue ', parameters('MHC_HostingPlanName'))]",
+            "type": "Microsoft.Insights/alertrules",
+            "location": "East US",
+            "apiVersion": "2014-04-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('MHC_HostingPlanName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]": "Resource",
+                "displayName": "WebsiteHostingPlanAlertRuleLongHttpQueue"
+            },
+            "properties": {
+                "name": "[concat('LongHttpQueue ', parameters('MHC_HostingPlanName'))]",
+                "description": "[concat('The HTTP queue for the instances of ', parameters('MHC_HostingPlanName'), ' has a large number of pending requests.')]",
+                "isEnabled": "[parameters('EnableRules')]",
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]",
+                        "metricName": "HttpQueueLength"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 100,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "name": "[parameters('WebSiteName')]",
+            "type": "Microsoft.Web/sites",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('MHC_HostingPlanName'))]",
+                "[resourceId('Microsoft.Sql/servers', variables('MHCServerName'))]",
+                "[resourceId('Microsoft.Sql/servers', variables('MHCServerNameDev'))]",
+                "[resourceId('Microsoft.Sql/servers', variables('MHCServerNameStage'))]",
+                "[resourceId('Microsoft.Insights/components', concat(parameters('WebsiteName'), '-Insights'))]",
+                "[resourceId('Microsoft.Insights/components', concat(parameters('WebSiteName'), '-DevInsights'))]",
+                "[resourceId('Microsoft.Insights/components', concat(parameters('WebSiteName'), '-StagingInsights'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2014-06-01",
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('MHC_HostingPlanName'))]": "Resource",
+                "displayName": "PartsUnlimitedWebsite"
+            },
+            "properties": {
+                "name": "[parameters('WebsiteName')]",
+                "serverFarm": "[parameters('MHC_HostingPlanName')]"
+            },
+            "resources": [
+                {
+                    "name": "connectionstrings",
+                    "type": "config",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites/', parameters('WebSiteName'))]"
+                    ],
+                    "properties": {
+                        "DefaultConnectionString": {
+                            "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('MHCServerName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('MHC_DBName'), ';User Id=', parameters ('MHC_DBLogin'), '@', variables('MHCServerName'), ';Password=', parameters('MHC_DBPassword'), ';')]",
+                            "type": "SQLAzure"
+                        }
+                    }
+                },
+                {
+                    "name": "appsettings",
+                    "type": "config",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('WebSiteName'))]"
+                    ],
+                    "properties": {
+                        "Keys:ApplicationInsights:InstrumentationKey": "[reference(concat('Microsoft.Insights/components/', parameters('WebsiteName'), '-Insights')).InstrumentationKey]"
+                    }
+                },
+                {
+                    "name": "slotconfignames",
+                    "type": "config",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('WebSiteName'))]"
+                    ],
+                    "properties": {
+                        "connectionStringNames": [ "DefaultConnectionString" ],
+                        "appSettingNames": [ "keys:ApplicationInsights:InstrumentationKey" ]
+                    }
+                },
+                {
+                    "name": "Dev",
+                    "type": "slots",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('WebSiteName'))]"
+                    ],
+                    "properties": {
+                    },
+                    "resources": [
+                        {
+                            "name": "connectionstrings",
+                            "type": "config",
+                            "apiVersion": "2014-11-01",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/sites/slots', parameters('WebSiteName'), 'Dev')]"
+                            ],
+                            "properties": {
+                                "DefaultConnectionString": {
+                                    "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('MHCServerNameDev'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('MHC_DBName'), ';User Id=', parameters ('MHC_DBLogin'), '@', variables('MHCServerNameDev'), ';Password=', parameters('MHC_DBPasswordForTest'), ';')]",
+                                    "type": "SQLAzure"
+                                }
+                            }
+                        },
+                        {
+                            "name": "appsettings",
+                            "type": "config",
+                            "apiVersion": "2014-11-01",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/sites/slots', parameters('WebSiteName'), 'Dev')]"
+                            ],
+                            "properties": {
+                                "Keys:ApplicationInsights:InstrumentationKey": "[reference(concat('Microsoft.Insights/components/', parameters('WebsiteName'), '-DevInsights')).InstrumentationKey]"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Staging",
+                    "type": "slots",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2014-11-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('WebSiteName'))]"
+                    ],
+                    "properties": {
+                    },
+                    "resources": [
+                        {
+                            "name": "connectionstrings",
+                            "type": "config",
+                            "apiVersion": "2014-11-01",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/sites/slots', parameters('WebSiteName'), 'Staging')]"
+                            ],
+                            "properties": {
+                                "DefaultConnectionString": {
+                                    "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('MHCServerNameStage'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', parameters('MHC_DBName'), ';User Id=', parameters ('MHC_DBLogin'), '@', variables('MHCServerNameStage'), ';Password=', parameters('MHC_DBPasswordForTest'), ';')]",
+                                    "type": "SQLAzure"
+                                }
+                            }
+                        },
+                        {
+                            "name": "appsettings",
+                            "type": "config",
+                            "apiVersion": "2014-11-01",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/sites/slots', parameters('WebSiteName'), 'Staging')]"
+                            ],
+                            "properties": {
+                                "Keys:ApplicationInsights:InstrumentationKey": "[reference(concat('Microsoft.Insights/components/', parameters('WebsiteName'), '-StagingInsights')).InstrumentationKey]"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "[concat('ServerErrors ', parameters('WebsiteName'))]",
+            "type": "Microsoft.Insights/alertrules",
+            "location": "East US",
+            "apiVersion": "2014-04-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('WebSiteName'))]"
+            ],
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('WebsiteName'))]": "Resource",
+                "displayName": "WebsiteAlertRuleServerErrors"
+            },
+            "properties": {
+                "name": "[concat('ServerErrors ', parameters('WebsiteName'))]",
+                "description": "[concat(parameters('WebsiteName'), ' has some server errors, status code 5xx.')]",
+                "isEnabled": "[parameters('EnableRules')]",
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('WebsiteName'))]",
+                        "metricName": "Http5xx"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        },
+        {
+            "name": "[concat('ForbiddenRequests ', parameters('WebsiteName'))]",
+            "type": "Microsoft.Insights/alertrules",
+            "location": "East US",
+            "apiVersion": "2014-04-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('WebsiteName'))]"
+            ],
+            "tags": {
+                "displayName": "WebsiteAlertRuleForbiddenRequests"
+            },
+            "properties": {
+                "name": "[concat('ForbiddenRequests ', parameters('WebsiteName'))]",
+                "description": "[concat(parameters('WebsiteName'), ' has some requests that are forbidden, status code 403.')]",
+                "isEnabled": "[parameters('EnableRules')]",
+                "condition": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.ThresholdRuleCondition",
+                    "dataSource": {
+                        "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleMetricDataSource",
+                        "resourceUri": "[concat(resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('WebsiteName'))]",
+                        "metricName": "Http403"
+                    },
+                    "operator": "GreaterThan",
+                    "threshold": 0,
+                    "windowSize": "PT5M"
+                },
+                "action": {
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.RuleEmailAction",
+                    "sendToServiceOwners": true,
+                    "customEmails": [ ]
+                }
+            }
+        }
+    ]
+}
